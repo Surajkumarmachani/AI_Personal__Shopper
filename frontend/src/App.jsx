@@ -2,10 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import ChatWindow from './components/ChatWindow'
 import ChatInput from './components/ChatInput'
 import Webcam from './components/Webcam'
+import { API_BASE, authHeaders } from './api'
 import './App.css'
-
-// Where your FastAPI backend is running. Change this when you deploy.
-const API_BASE = 'http://127.0.0.1:8000'
 
 // A stable per-browser session id so the backend remembers the conversation.
 function getSessionId() {
@@ -69,7 +67,7 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/speak`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ text }),
         signal: controller.signal,
       })
@@ -118,7 +116,7 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           session_id: sessionId.current,
           message: trimmed,

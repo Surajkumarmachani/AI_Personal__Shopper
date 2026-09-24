@@ -16,3 +16,6 @@ dist/
 .DS_Store
 *.zip
 *.log
+
+# API key store
+files/api_keys.db

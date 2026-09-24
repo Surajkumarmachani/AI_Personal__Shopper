@@ -11,6 +11,9 @@ Endpoints:
                       (+ voice-tone emotion when the webcam is unavailable)
   POST /speak       → send text, get spoken audio (MP3) back
 
+Auth: every endpoint except /health requires an `X-API-Key` header
+(see api_keys.py for creating/revoking keys and rate limits).
+
 Privacy: user text is scrubbed of PII (Presidio) BEFORE being logged.
 The real, unscrubbed message still goes to the agent — only logs are scrubbed.
 
@@ -21,7 +24,7 @@ Run it:
 import base64
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response
+from fastapi import Depends, FastAPI, HTTPException, UploadFile, File, Form, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -40,6 +43,7 @@ from emotion import detect_emotion, warm_up
 from voice import transcribe_audio, synthesize_speech
 from voice_emotion import detect_emotion_from_audio
 from privacy import scrub_for_logging
+from api_keys import Client, require_api_key
 
 
 @asynccontextmanager
@@ -133,7 +137,7 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/emotion", response_model=EmotionResponse)
+@app.post("/emotion", response_model=EmotionResponse, dependencies=[Depends(require_api_key)])
 async def emotion(req: EmotionRequest):
     # detect_emotion never raises and DeepFace inference is CPU-bound, so run it
     # in a threadpool to keep the event loop free for chat requests.
@@ -148,7 +152,7 @@ async def emotion(req: EmotionRequest):
     )
 
 
-@app.post("/transcribe", response_model=TranscribeResponse)
+@app.post("/transcribe", response_model=TranscribeResponse, dependencies=[Depends(require_api_key)])
 async def transcribe(
     audio: UploadFile = File(...),
     webcam_active: str = Form("true"),
@@ -175,21 +179,25 @@ async def transcribe(
     )
 
 
-@app.post("/speak")
+@app.post("/speak", dependencies=[Depends(require_api_key)])
 async def speak(req: SpeakRequest):
     audio = await run_in_threadpool(synthesize_speech, req.text, req.lang)
     return Response(content=audio, media_type="audio/mpeg")
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, client: Client = Depends(require_api_key)):
+    # Namespace the session by client so two clients sending the same
+    # session_id never share conversation memory or product results.
+    session_id = f"{client.id}:{req.session_id}"
+
     # PII-scrubbed copy for the logs; the REAL message goes to the agent.
-    log.info(f"[{req.session_id}] user: {scrub_for_logging(req.message)}")
+    log.info(f"[{session_id}] ({client.name}) user: {scrub_for_logging(req.message)}")
     try:
         reply, products = await run_agent(
             message=req.message,
             emotion=req.emotion,
-            session_id=req.session_id,
+            session_id=session_id,
         )
 
         # Voice-with-text: synthesize the reply in the SAME response so the

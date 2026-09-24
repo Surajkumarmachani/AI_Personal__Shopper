@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { authHeaders } from '../api'
 import ConsentModal from './ConsentModal'
 import './Webcam.css'
 
@@ -51,7 +52,7 @@ export default function Webcam({ apiBase, sessionId, onEmotion, onActiveChange }
 
       const res = await fetch(`${apiBase}/emotion`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ session_id: sessionId, image }),
       })
       if (!res.ok) throw new Error('emotion request failed')

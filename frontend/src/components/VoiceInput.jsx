@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { authHeaders } from '../api'
 import ConsentModal from './ConsentModal'
 import './VoiceInput.css'
 
@@ -78,7 +79,11 @@ export default function VoiceInput({ apiBase, disabled, onTranscript, webcamActi
       // If not, it analyzes this audio's tone (librosa) as the fallback.
       form.append('webcam_active', webcamActiveRef.current ? 'true' : 'false')
 
-      const res = await fetch(`${apiBase}/transcribe`, { method: 'POST', body: form })
+      const res = await fetch(`${apiBase}/transcribe`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: form,
+      })
       if (!res.ok) throw new Error('transcribe failed')
       const data = await res.json()
       const text = (data.text || '').trim()

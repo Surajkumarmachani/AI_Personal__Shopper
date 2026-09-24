@@ -29,6 +29,39 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The frontend expects the backend at `http://127.0.0.1:8000`.
+Create an API key for the web app and put it in `frontend/.env.local`:
+
+```bash
+# in files/, venv active
+python api_keys.py create "Local web frontend"
+```
+
+```
+# frontend/.env.local
+VITE_API_BASE=http://127.0.0.1:8000
+VITE_API_KEY=aura_live_...
+```
+
+Open http://localhost:5173.
+
+## API keys
+
+Every endpoint except `GET /health` requires an `X-API-Key` header. Each client gets its own key; only a hash is stored (SQLite, `files/api_keys.db`).
+
+```bash
+python api_keys.py create "Acme Corp"   # prints the key once — send it to the client
+python api_keys.py list                 # usage per key
+python api_keys.py revoke 3             # disable key id 3
+```
+
+- Missing/invalid/revoked key → `401`; over `RATE_LIMIT_PER_MIN` (default 60) → `429` with `Retry-After`.
+- Conversation memory is scoped per key, so clients can't see each other's sessions.
+- Interactive API docs: `http://127.0.0.1:8000/docs`.
+
+```bash
+curl -X POST http://127.0.0.1:8000/chat \
+  -H "X-API-Key: aura_live_..." -H "Content-Type: application/json" \
+  -d '{"session_id": "user-123", "message": "running shoes under $100"}'
+```
 
 To (re)build the product index, run `python ingest_to_pinecone.py` from `files/` — it writes to Pinecone and regenerates `bm25_model.json`.
