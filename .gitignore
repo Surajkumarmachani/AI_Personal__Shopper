@@ -19,3 +19,6 @@ dist/
 
 # API key store
 files/api_keys.db
+
+# Cloud Run secrets
+files/env.yaml

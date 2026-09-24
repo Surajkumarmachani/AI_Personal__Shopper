@@ -12,7 +12,8 @@ Endpoints:
   POST /speak       → send text, get spoken audio (MP3) back
 
 Auth: every endpoint except /health requires an `X-API-Key` header
-(see api_keys.py for creating/revoking keys and rate limits).
+(see api_keys.py for creating/revoking keys and rate limits). The /admin/*
+key-management endpoints require `X-Admin-Token` instead.
 
 Privacy: user text is scrubbed of PII (Presidio) BEFORE being logged.
 The real, unscrubbed message still goes to the agent — only logs are scrubbed.
@@ -23,6 +24,7 @@ Run it:
 
 import base64
 import logging
+import os
 from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, UploadFile, File, Form, Response
 from fastapi.concurrency import run_in_threadpool
@@ -43,7 +45,7 @@ from emotion import detect_emotion, warm_up
 from voice import transcribe_audio, synthesize_speech
 from voice_emotion import detect_emotion_from_audio
 from privacy import scrub_for_logging
-from api_keys import Client, require_api_key
+from api_keys import Client, admin_router, require_api_key
 
 
 @asynccontextmanager
@@ -54,11 +56,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Emotion Shop Backend", lifespan=lifespan)
+app.include_router(admin_router)
 
-# Allow ANY frontend origin to call this API (safe for local dev)
+# Browser origins allowed to call this API, comma-separated. Defaults to "*"
+# (any origin) for local dev; in production set it to your frontend's URL,
+# e.g. ALLOWED_ORIGINS=https://your-app.vercel.app. Non-browser clients
+# (desktop app, servers) aren't affected by CORS — they still need an API key.
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,0 +1,9 @@
+# Files NOT uploaded by `gcloud run deploy --source .`
+.gcloudignore
+.venv/
+__pycache__/
+*.pyc
+.env
+api_keys.db
+.DS_Store
+env.yaml

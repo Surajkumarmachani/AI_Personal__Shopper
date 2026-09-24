@@ -65,3 +65,49 @@ curl -X POST http://127.0.0.1:8000/chat \
 ```
 
 To (re)build the product index, run `python ingest_to_pinecone.py` from `files/` — it writes to Pinecone and regenerates `bm25_model.json`.
+
+## Deploy
+
+Backend → **Google Cloud Run** (built from this GitHub repo, HTTPS, API keys in Firestore). Frontend → **Vercel**. Everything below is done in the web consoles — no CLI needed.
+
+### 1. Google Cloud project
+1. https://console.cloud.google.com → project picker → **New project**. Note the **Project ID**.
+2. **Billing** → link a billing account (the free trial credit applies).
+
+### 2. Firestore (stores API keys)
+1. Search **Firestore** → **Create database**.
+2. Database ID: `(default)` · Edition: Standard · Mode: **Native** · Location: **us-east1** → **Create**.
+
+### 3. Permission for the backend to use Firestore
+1. **IAM & Admin → IAM** → find **Compute Engine default service account** (`<number>-compute@developer.gserviceaccount.com`) → ✏️ Edit.
+2. **Add another role** → **Cloud Datastore User** → **Save**.
+
+### 4. Deploy the backend on Cloud Run
+1. Search **Cloud Run** → **Deploy container** → **Service**.
+2. Choose **Continuously deploy from a repository** → **Set up with Cloud Build** → enable the APIs it asks for.
+3. Provider **GitHub** → authenticate → repository `AI_Personal__Shopper` → **Next**.
+4. Branch `^main$` · Build type **Dockerfile** · Source location `/files/Dockerfile` → **Save**.
+5. Service name `aura-backend` · Region **us-east1** · Authentication **Allow public access** (our API keys protect it).
+6. Billing **Request-based** · Service scaling: minimum instances **1**, maximum instances **1**
+   (chat memory and rate limits live in RAM, so exactly one instance; set minimum to 0 to save credit at the cost of ~1 min cold starts).
+7. **Containers, volumes, networking, security**:
+   - Container port **8080** · Memory **4 GiB** · CPU **2** · Request timeout **300** · ✅ Startup CPU boost.
+   - **Variables & secrets** → add each variable from your `files/.env`, plus:
+     `API_KEYS_BACKEND=firestore`, `ALLOWED_ORIGINS=*`, `ADMIN_TOKEN=<long random password>`.
+8. **Create**. The first build takes ~10–15 min (Cloud Build → History shows progress).
+9. Open the service URL + `/health` → `{"status":"ok"}`.
+
+Every `git push` to `main` now rebuilds and redeploys automatically.
+
+### 5. Create API keys (browser)
+1. Open `<service-url>/docs`.
+2. Click **Authorize** → paste your `ADMIN_TOKEN` into **X-Admin-Token** → Authorize.
+3. **POST /admin/keys** → Try it out → `{"name": "Web frontend"}` → Execute → copy `api_key` (shown once).
+   Repeat for `"Desktop app"` and each client. **GET /admin/keys** lists usage; **POST /admin/keys/{id}/revoke** disables one.
+
+### 6. Frontend on Vercel
+1. https://vercel.com → **Add New → Project** → import this repo.
+2. **Root Directory**: `frontend` (preset: Vite).
+3. **Environment Variables**: `VITE_API_BASE` = Cloud Run URL, `VITE_API_KEY` = the "Web frontend" key.
+4. **Deploy** → `https://<name>.vercel.app`.
+5. In Cloud Run → **Edit & deploy new revision** → Variables → set `ALLOWED_ORIGINS=https://<name>.vercel.app` → Deploy.
