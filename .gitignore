@@ -22,3 +22,4 @@ files/api_keys.db
 
 # Cloud Run secrets
 files/env.yaml
+files/cloudrun.env

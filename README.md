@@ -86,7 +86,7 @@ Backend → **Google Cloud Run** (built from this GitHub repo, HTTPS, API keys i
 1. Search **Cloud Run** → **Deploy container** → **Service**.
 2. Choose **Continuously deploy from a repository** → **Set up with Cloud Build** → enable the APIs it asks for.
 3. Provider **GitHub** → authenticate → repository `AI_Personal__Shopper` → **Next**.
-4. Branch `^main$` · Build type **Dockerfile** · Source location `/files/Dockerfile` → **Save**.
+4. Branch `^main$` · Build type **Dockerfile** · Source location `/Dockerfile` (the default) → **Save**.
 5. Service name `aura-backend` · Region **us-east1** · Authentication **Allow public access** (our API keys protect it).
 6. Billing **Request-based** · Service scaling: minimum instances **1**, maximum instances **1**
    (chat memory and rate limits live in RAM, so exactly one instance; set minimum to 0 to save credit at the cost of ~1 min cold starts).

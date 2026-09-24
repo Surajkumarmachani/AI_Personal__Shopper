@@ -1,5 +1,6 @@
 # Backend image for Google Cloud Run (also runs anywhere Docker does).
-# Build + deploy:  see "Deploy to Google Cloud" in the repo README.
+# Lives at the repo root (Cloud Build's default Dockerfile location) and
+# copies only the backend in files/. Build locally with:  docker build -t aura-backend .
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -14,11 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY files/requirements.txt .
 RUN pip install -r requirements.txt \
     && python -m spacy download en_core_web_lg
 
-COPY . .
+COPY files/ .
 
 # Download the DeepFace emotion weights at build time so startup doesn't
 # depend on GitHub being reachable.

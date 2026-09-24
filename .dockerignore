@@ -1,0 +1,12 @@
+# Only files/ is copied into the image; keep secrets and local junk out of it.
+.git/
+frontend/
+frontend.zip
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.env
+**/env.yaml
+**/cloudrun.env
+**/api_keys.db
+**/.DS_Store
