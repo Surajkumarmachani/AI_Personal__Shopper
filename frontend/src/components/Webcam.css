@@ -1,0 +1,133 @@
+/* Webcam.css — compact holographic styling for the webcam control.
+   Uses the design tokens defined in index.css (:root). Imported by Webcam.jsx. */
+
+.webcam {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* "Enable camera" button (shown when the camera is off) */
+.webcam-enable {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.webcam-enable:hover {
+  border-color: rgba(167, 139, 250, 0.5);
+  transform: translateY(-1px);
+}
+.webcam-enable:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Live view: small preview + emotion chip + stop button */
+.webcam-live {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.webcam-video {
+  width: 132px;
+  height: 99px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transform: scaleX(-1);        /* mirror for a natural selfie view */
+  background: #000;
+}
+
+/* Smooth emotion chip — emoji and color fade on emotion change */
+.webcam-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  text-transform: capitalize;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+.webcam-emoji {
+  font-size: 15px;
+  line-height: 1;
+  transition: transform 0.3s ease;
+}
+/* Subtle pulse when the emoji changes */
+.webcam-emoji:not(:empty) {
+  animation: emoji-pop 0.3s ease;
+}
+@keyframes emoji-pop {
+  0%   { transform: scale(0.7); opacity: 0.5; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.webcam-label { color: var(--text-dim); }
+
+/* Stop button — 44px minimum for mobile tap target */
+.webcam-stop {
+  width: 32px;
+  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.webcam-stop:hover {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.5);
+}
+.webcam-stop:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Consistent error hint — matches the global .error-hint pattern */
+.webcam-error {
+  font-size: 12px;
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.webcam-error::before {
+  content: '⚠';
+  font-size: 11px;
+}
+
+@media (max-width: 560px) {
+  .webcam-video { width: 96px; height: 72px; }
+  .webcam-label { display: none; }
+}
+
+@media (max-width: 420px) {
+  .webcam-video { width: 72px; height: 54px; border-radius: 8px; }
+  .webcam-chip { padding: 5px 8px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .webcam-emoji { animation: none; }
+  .webcam-chip { transition: none; }
+}

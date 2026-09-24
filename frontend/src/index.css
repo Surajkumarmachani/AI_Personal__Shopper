@@ -1,0 +1,39 @@
+/* index.css â€” design tokens, reset, and the holographic background.
+   Vite imports this from main.jsx by default. Replace the file's contents. */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap');
+
+:root {
+  --bg-0: #06060e;
+  --glass:        rgba(255, 255, 255, 0.045);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --border:       rgba(255, 255, 255, 0.10);
+  --text:     #ececf6;
+  --text-dim: #8f8fa9;
+
+  /* The holographic signature: a multi-hue iridescent gradient */
+  --holo:      linear-gradient(120deg, #5eead4 0%, #818cf8 35%, #c084fc 65%, #f0abfc 100%);
+  --holo-soft: linear-gradient(135deg, rgba(94,234,212,0.16), rgba(129,140,248,0.16), rgba(192,132,252,0.16));
+
+  --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Layered radial glows over a near-black base = ambient hologram light */
+  background:
+    radial-gradient(1200px 800px at 15% -10%, rgba(129,140,248,0.18), transparent 60%),
+    radial-gradient(1000px 700px at 110% 10%, rgba(192,132,252,0.16), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, rgba(94,234,212,0.12), transparent 55%),
+    var(--bg-0);
+}
+
+#root { display: flex; justify-content: center; }
