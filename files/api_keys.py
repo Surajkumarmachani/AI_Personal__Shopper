@@ -58,8 +58,10 @@ RATE_LIMIT_PER_MIN = int(os.getenv("RATE_LIMIT_PER_MIN", "60"))
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
 KEY_PREFIX = "aura_live_"
 
-_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-_admin_token_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
+# Distinct scheme names, or /docs merges them into one "APIKeyHeader" and the
+# Authorize dialog only offers X-API-Key.
+_api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="ApiKey", auto_error=False)
+_admin_token_header = APIKeyHeader(name="X-Admin-Token", scheme_name="AdminToken", auto_error=False)
 _db_lock = threading.Lock()
 
 
